@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Raleway+Dots&display=swap"
+      rel="stylesheet"
+    />
+    <title>Embedded Graphics Web Simulator!</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        flex-direction: row;
+        color: white;
+        font-family: "Raleway Dots", cursive;
+      }
+      canvas {
+        padding: 0;
+        margin: auto;
+        border-style: solid;
+        border-color: #605e63;
+        border-width: 2px;
+        border-top-width: 20px;
+        margin-bottom: 20px;
+      }
+      body {
+        background-color: #171414;
+      }
+      header {
+        margin-bottom: 20px;
+        font-size: 40px;
+
+        width: 100%;
+        text-align: center;
+      }
+      footer {
+        display: block;
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+      }
+      a {
+        color: gainsboro;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      Embedded Graphics Web Simulator!
+    </header>
+
+    <footer>
+      🦀 A rust-embedded x rust-wasm experiment 🦀
+      <br />Made using
+      <a href="https://github.com/jamwaffles" target="_blank">@jamwaffles'</a>
+      <a href="https://github.com/jamwaffles/embedded-graphics" target="_blank"
+        >Embedded Graphics</a
+      >
+    </footer>
+
+    <script src="index.js"></script>
+  </body>
+</html>
