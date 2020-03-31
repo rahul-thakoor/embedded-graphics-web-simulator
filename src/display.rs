@@ -19,7 +19,7 @@ pub struct WebSimulatorDisplay {
 impl WebSimulatorDisplay {
     /// Creates a new display.
     ///
-    /// This appends a <canvas> element with size corresponding to scale and pixel spacing used
+    /// This appends a `<canvas>` element with size corresponding to scale and pixel spacing used
     /// The display is filled with black.
     pub fn new(size: (u32, u32), output_settings: &OutputSettings) -> Self {
         // source:https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs#L27
