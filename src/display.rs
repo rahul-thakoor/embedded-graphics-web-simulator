@@ -1,22 +1,28 @@
+use core::marker::PhantomData;
 use crate::output_settings::OutputSettings;
 use embedded_graphics::{
-    drawable::Pixel,
+    primitives,
+    // drawable::Pixel,
     geometry::Size,
     pixelcolor::{PixelColor, Rgb888},
     prelude::*,
-    DrawTarget,
+    // DrawTarget,
 };
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::HtmlCanvasElement;
 
 /// WebSimulator display.
-pub struct WebSimulatorDisplay {
+pub struct WebSimulatorDisplay<C> {
     size: Size,
     canvas: HtmlCanvasElement,
     output_settings: OutputSettings,
+    _color_type: PhantomData<C>,
 }
 
-impl WebSimulatorDisplay {
+impl<C> WebSimulatorDisplay<C>
+where
+    C: PixelColor + Into<Rgb888>
+{
     /// Creates a new display.
     ///
     /// This appends a `<canvas>` element with size corresponding to scale and pixel spacing used
@@ -52,17 +58,11 @@ impl WebSimulatorDisplay {
             size: Size::new(width, height),
             canvas,
             output_settings: output_settings.clone(),
+            _color_type: PhantomData,
         }
     }
-}
 
-impl<C> DrawTarget<C> for WebSimulatorDisplay
-where
-    C: PixelColor + Into<Rgb888>,
-{
-    type Error = core::convert::Infallible;
-
-    fn draw_pixel(&mut self, pixel: Pixel<C>) -> Result<(), Self::Error> {
+    fn draw_pixel(&mut self, pixel: Pixel<C>) -> Result<(), core::convert::Infallible> {
         let Pixel(coord, color) = pixel;
 
         let context = self
@@ -92,8 +92,37 @@ where
 
         Ok(())
     }
+}
 
+impl<C> OriginDimensions for WebSimulatorDisplay<C>
+where
+    C: PixelColor + Into<Rgb888>
+{
     fn size(&self) -> Size {
         self.size
     }
+}
+
+impl<C> DrawTarget for WebSimulatorDisplay<C>
+where
+    C: PixelColor + Into<Rgb888>,
+{
+    type Color = C;
+    type Error = core::convert::Infallible;
+
+    fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
+    where
+        I: IntoIterator<Item = Pixel<Self::Color>>,
+    {
+        let bounding_box =
+            primitives::Rectangle::new(Point::new(0, 0), self.size);
+        for pixel in pixels.into_iter() {
+            if bounding_box.contains(pixel.0) {
+                self.draw_pixel(pixel)?;
+                // self.draw_point((coord.x as i16, coord.y as i16), color.into_storage())?;
+            }
+        }
+        Ok(())
+    }
+
 }
