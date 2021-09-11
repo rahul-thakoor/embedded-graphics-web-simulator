@@ -36,7 +36,9 @@ tinybmp = "0.3.1"
 # like the DOM.
 [dependencies.web-sys]
 version = "0.3"
-features = ["console",  'CanvasRenderingContext2d',
+features = [
+  'console',
+  'CanvasRenderingContext2d',
   'Document',
   'Element',
   'HtmlCanvasElement',
