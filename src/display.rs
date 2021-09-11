@@ -1,15 +1,15 @@
-use core::marker::PhantomData;
 use crate::output_settings::OutputSettings;
+use core::marker::PhantomData;
 use embedded_graphics::{
-    primitives,
     // drawable::Pixel,
     geometry::Size,
     pixelcolor::{PixelColor, Rgb888},
     prelude::*,
     // DrawTarget,
+    primitives,
 };
 use wasm_bindgen::{JsCast, JsValue};
-use web_sys::HtmlCanvasElement;
+use web_sys::{Element, HtmlCanvasElement};
 
 /// WebSimulator display.
 pub struct WebSimulatorDisplay<C> {
@@ -21,13 +21,17 @@ pub struct WebSimulatorDisplay<C> {
 
 impl<C> WebSimulatorDisplay<C>
 where
-    C: PixelColor + Into<Rgb888>
+    C: PixelColor + Into<Rgb888>,
 {
     /// Creates a new display.
     ///
     /// This appends a `<canvas>` element with size corresponding to scale and pixel spacing used
     /// The display is filled with black.
-    pub fn new(size: (u32, u32), output_settings: &OutputSettings) -> Self {
+    pub fn new(
+        size: (u32, u32),
+        output_settings: &OutputSettings,
+        parent: Option<Element>,
+    ) -> Self {
         // source:https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs#L27
         let width = size.0 * output_settings.scale + (size.0 - 1) * output_settings.pixel_spacing;
         // source:https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs#L28
@@ -49,10 +53,18 @@ where
 
         context.set_fill_style(&JsValue::from_str("black"));
         context.fill_rect(0.0, 0.0, width as f64, height as f64);
-        let body = document.body().expect("document should have a body");
+        let parent = parent.unwrap_or(
+            document
+                .body()
+                .expect("document doesn't have a body and no alternative parent was supplied")
+                .dyn_into::<web_sys::Element>()
+                .map_err(|_| ())
+                .unwrap(),
+        );
 
-        body.append_child(&canvas)
-            .expect("couldn't append canvas to body");
+        parent
+            .append_child(&canvas)
+            .expect("couldn't append canvas to parent");
 
         WebSimulatorDisplay {
             size: Size::new(width, height),
@@ -96,7 +108,7 @@ where
 
 impl<C> OriginDimensions for WebSimulatorDisplay<C>
 where
-    C: PixelColor + Into<Rgb888>
+    C: PixelColor + Into<Rgb888>,
 {
     fn size(&self) -> Size {
         self.size
@@ -114,8 +126,7 @@ where
     where
         I: IntoIterator<Item = Pixel<Self::Color>>,
     {
-        let bounding_box =
-            primitives::Rectangle::new(Point::new(0, 0), self.size);
+        let bounding_box = primitives::Rectangle::new(Point::new(0, 0), self.size);
         for pixel in pixels.into_iter() {
             if bounding_box.contains(pixel.0) {
                 self.draw_pixel(pixel)?;
@@ -124,5 +135,4 @@ where
         }
         Ok(())
     }
-
 }
