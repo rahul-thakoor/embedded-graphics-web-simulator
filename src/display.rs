@@ -115,31 +115,19 @@ where
 
     fn draw_pixel(&mut self, pixel: Pixel<C>) -> Result<(), core::convert::Infallible> {
         let Pixel(coord, color) = pixel;
+        let scale = self.output_settings.scale;
 
-        let context = self
-            .canvas
-            .get_context("2d")
-            .unwrap()
-            .unwrap()
-            .dyn_into::<web_sys::CanvasRenderingContext2d>()
-            .unwrap();
-        let color_rgb888 = color.into();
-
-        let css_color = format!(
-            "rgb({},{},{})",
-            color_rgb888.r(),
-            color_rgb888.g(),
-            color_rgb888.b()
-        );
-        context.set_fill_style(&JsValue::from_str(&css_color));
         // source: https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs#L40
-        let pitch = (self.output_settings.scale + self.output_settings.pixel_spacing) as i32;
-        context.fill_rect(
-            (coord.x * pitch) as f64,
-            (coord.y * pitch) as f64,
-            self.output_settings.scale as f64,
-            self.output_settings.scale as f64,
-        );
+        let pitch = scale + self.output_settings.pixel_spacing;
+
+        Self::fill_rect(
+            &self.canvas,
+            color,
+            &Rectangle::new(coord, Size::new(scale, scale)),
+            scale,
+            pitch,
+        )
+        .expect("numeric conversion failed");
 
         Ok(())
     }
@@ -159,7 +147,7 @@ where
     C: PixelColor + Into<Rgb888>,
 {
     type Color = C;
-    type Error = core::convert::Infallible;
+    type Error = Box<dyn Error>;
 
     fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
     where
@@ -169,40 +157,14 @@ where
         for pixel in pixels.into_iter() {
             if bounding_box.contains(pixel.0) {
                 self.draw_pixel(pixel)?;
-                // self.draw_point((coord.x as i16, coord.y as i16), color.into_storage())?;
             }
         }
         Ok(())
     }
 
     fn fill_solid(&mut self, area: &Rectangle, color: Self::Color) -> Result<(), Self::Error> {
-        let context = self
-            .canvas
-            .get_context("2d")
-            .unwrap()
-            .unwrap()
-            .dyn_into::<web_sys::CanvasRenderingContext2d>()
-            .unwrap();
-        let color_rgb888 = color.into();
+        Self::fill_rect(&self.canvas, color, area, self.output_settings.scale, 1)?;
 
-        let css_color = format!(
-            "rgb({},{},{})",
-            color_rgb888.r(),
-            color_rgb888.g(),
-            color_rgb888.b()
-        );
-        context.set_fill_style(&JsValue::from_str(&css_color));
-
-        let tl = area.top_left;
-
-        let scale = self.output_settings.scale as f64;
-
-        context.fill_rect(
-            tl.x as f64 * scale,
-            tl.y as f64 * scale,
-            area.size.width as f64 * scale,
-            area.size.height as f64 * scale,
-        );
         Ok(())
     }
 }
