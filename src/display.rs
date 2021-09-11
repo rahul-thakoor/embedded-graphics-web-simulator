@@ -1,13 +1,12 @@
 use crate::output_settings::OutputSettings;
 use core::marker::PhantomData;
 use embedded_graphics::{
-    // drawable::Pixel,
     geometry::Size,
     pixelcolor::{PixelColor, Rgb888},
     prelude::*,
-    // DrawTarget,
-    primitives,
+    primitives::{self, Rectangle},
 };
+use std::{convert::TryInto, error::Error};
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Element, HtmlCanvasElement};
 
@@ -74,6 +73,46 @@ where
         }
     }
 
+    fn fill_rect(
+        canvas: &HtmlCanvasElement,
+        color: C,
+        area: &Rectangle,
+        scale: u32,
+        pitch: u32,
+    ) -> Result<(), Box<dyn Error>> {
+        let context = canvas
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+            .unwrap();
+        let color_rgb888 = color.into();
+
+        let css_color = format!(
+            "rgb({},{},{})",
+            color_rgb888.r(),
+            color_rgb888.g(),
+            color_rgb888.b()
+        );
+        context.set_fill_style(&JsValue::from_str(&css_color));
+
+        let width = area.size.width * scale;
+        let height = area.size.height * scale;
+
+        let scale: i32 = scale.try_into()?;
+        let pitch: i32 = pitch.try_into()?;
+
+        let origin = area.top_left;
+
+        context.fill_rect(
+            (origin.x * scale * pitch).try_into()?,
+            (origin.y * scale * pitch).try_into()?,
+            width.try_into()?,
+            height.try_into()?,
+        );
+        Ok(())
+    }
+
     fn draw_pixel(&mut self, pixel: Pixel<C>) -> Result<(), core::convert::Infallible> {
         let Pixel(coord, color) = pixel;
 
@@ -133,6 +172,37 @@ where
                 // self.draw_point((coord.x as i16, coord.y as i16), color.into_storage())?;
             }
         }
+        Ok(())
+    }
+
+    fn fill_solid(&mut self, area: &Rectangle, color: Self::Color) -> Result<(), Self::Error> {
+        let context = self
+            .canvas
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+            .unwrap();
+        let color_rgb888 = color.into();
+
+        let css_color = format!(
+            "rgb({},{},{})",
+            color_rgb888.r(),
+            color_rgb888.g(),
+            color_rgb888.b()
+        );
+        context.set_fill_style(&JsValue::from_str(&css_color));
+
+        let tl = area.top_left;
+
+        let scale = self.output_settings.scale as f64;
+
+        context.fill_rect(
+            tl.x as f64 * scale,
+            tl.y as f64 * scale,
+            area.size.width as f64 * scale,
+            area.size.height as f64 * scale,
+        );
         Ok(())
     }
 }
