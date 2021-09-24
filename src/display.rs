@@ -29,7 +29,7 @@ where
     pub fn new(
         size: (u32, u32),
         output_settings: &OutputSettings,
-        parent: Option<Element>,
+        parent: Option<&Element>,
     ) -> Self {
         // source:https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs#L27
         let width = size.0 * output_settings.scale + (size.0 - 1) * output_settings.pixel_spacing;
@@ -52,16 +52,15 @@ where
 
         context.set_fill_style(&JsValue::from_str("black"));
         context.fill_rect(0.0, 0.0, width as f64, height as f64);
-        let parent = parent.unwrap_or(
-            document
-                .body()
-                .expect("document doesn't have a body and no alternative parent was supplied")
-                .dyn_into::<web_sys::Element>()
-                .map_err(|_| ())
-                .unwrap(),
-        );
-
         parent
+            .unwrap_or(
+                &document
+                    .body()
+                    .expect("document doesn't have a body and no alternative parent was supplied")
+                    .dyn_into::<web_sys::Element>()
+                    .map_err(|_| ())
+                    .unwrap(),
+            )
             .append_child(&canvas)
             .expect("couldn't append canvas to parent");
 
