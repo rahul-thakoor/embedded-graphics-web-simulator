@@ -31,9 +31,9 @@ where
         output_settings: &OutputSettings,
         parent: Option<&Element>,
     ) -> Self {
-        // source:https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs#L27
+        // source: https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs
         let width = size.0 * output_settings.scale + (size.0 - 1) * output_settings.pixel_spacing;
-        // source:https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs#L28
+        // source: https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs
         let height = size.1 * output_settings.scale + (size.1 - 1) * output_settings.pixel_spacing;
         let document = web_sys::window().unwrap().document().unwrap();
         let canvas = document.create_element("canvas").unwrap();
@@ -116,7 +116,7 @@ where
         let Pixel(coord, color) = pixel;
         let scale = self.output_settings.scale;
 
-        // source: https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs#L40
+        // source: https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs#L39
         let pitch = scale + self.output_settings.pixel_spacing;
 
         Self::fill_rect(

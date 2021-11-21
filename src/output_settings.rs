@@ -1,4 +1,4 @@
-/* source: https://github.com/jamwaffles/embedded-graphics/blob/master/simulator/src/output_settings.rs */
+/* source:https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs */
 
 /// Output settings.
 #[derive(Debug, PartialEq, Eq, Clone)]

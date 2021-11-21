@@ -8,7 +8,7 @@
 //! # Setup
 //! This library is intended to be used in Rust + Webassembly projects.
 //! Check the examples which illustrate how to use the library.
-//! Look at the [examples](https://github.com/jamwaffles/embedded-graphics/tree/master/simulator/examples) in the Embedded Graphics Simulator project for inspiration.
+//! Look at the [examples](https://github.com/embedded-graphics/simulator/tree/master/examples) in the Embedded Graphics Simulator project for inspiration.
 //! You can use wasm-pack to create a ready to go project and add this library as a dependency.
 //!
 //! ```rust,no_run
