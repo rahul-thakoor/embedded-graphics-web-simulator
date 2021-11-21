@@ -93,6 +93,8 @@ Embedded Graphics Web Simulator implements [`DrawTarget`](https://docs.rs/embedd
 
 ## Credits
 
-This project is based on the [embedded-graphics](https://github.com/jamwaffles/embedded-graphics) library by @jamwaffles
+This project is based on the [embedded-graphics](https://github.com/embedded-graphics/simulator) library, originally by @jamwaffles
 
 Built with [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+
+Thanks to all contributors :)
