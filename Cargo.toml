@@ -27,7 +27,6 @@ features = ["console",  'CanvasRenderingContext2d',
   'HtmlCanvasElement',
   'Window']
 
-  
-[dependencies.embedded-graphics]
-version = "0.6.0"
 
+[dependencies.embedded-graphics]
+version = "0.7.0"
