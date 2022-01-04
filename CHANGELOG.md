@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file
 
+# v.0.3.0
+## (10-01-2021)
+
+* instead of parsing CSS for every pixel color, draw directly into a persistent RGBA array. Also make copying to the actual canvas an explicit flush() operation. [ @spookyvision ] 
+* fix: differentiate between effective canvas dimension (includes scale+spacing) and simulated ("original") size [ @spookyvision ] 
+* fix: animation example compiles again (type mismatch) [ @spookyvision ] 
+* cleanup (variable names, unused imports, error messages) [ @spookyvision ] 
+* prettier animated example [ @spookyvision ] 
+
 # v0.2.1
 ## (21-11-2021)
 

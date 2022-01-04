@@ -82,6 +82,8 @@ pub fn main_js() -> Result<(), JsValue> {
     {
         console::log_1(&"Couldn't draw circle".into());
     }
+
+    img_display.flush().expect("Couldn't update");
     Ok(())
 }
 
@@ -90,6 +92,8 @@ pub fn main_js() -> Result<(), JsValue> {
 ### How it works
 
 Embedded Graphics Web Simulator implements [`DrawTarget`](https://docs.rs/embedded-graphics/0.6.0/embedded_graphics/prelude/trait.DrawTarget.html) for the HTML `<canvas>` element.
+It will attach a `<canvas>` either to the document body, or to a user-supplied parent element.
+To minimize overhead, draw operations need to be explicitly `flush()`ed whenver you want to see an actual update.
 
 ## Credits
 

@@ -1,4 +1,4 @@
-use embedded_graphics::draw_target::DrawTarget;
+use embedded_graphics::{draw_target::DrawTarget, prelude::*};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -37,7 +37,7 @@ fn text_container() -> web_sys::Element {
         .expect("document should have our text container")
 }
 
-const MARX: i32 = 70;
+const NUM_ITER: i32 = 60;
 
 // This function is automatically invoked after the wasm module is instantiated.
 #[wasm_bindgen(start)]
@@ -48,14 +48,26 @@ pub fn run() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
     let document = document();
+
+    let body = document.body().expect("could not get document body");
+
+    // for simplicity reasons, this example uses `cargo-run-wasm`, which doesn't allow
+    // custom html - so it's augmented here inline. In a real project, you'd likely use `trunk` instead.
+    body.set_inner_html(
+        r#"
+        <p id="text">A greeting from rust looks like...
+        <div id="graphics"></div>
+        "#,
+    );
     let output_settings = OutputSettingsBuilder::new()
-        .scale(2)
-        .pixel_spacing(2)
+        .scale(3)
+        .pixel_spacing(1)
         .build();
+    let size = (2 * NUM_ITER) as u32;
     let mut img_display = WebSimulatorDisplay::new(
-        (MARX as u32, MARX as u32),
+        (size, size),
         &output_settings,
-        document.get_element_by_id("graphics"),
+        document.get_element_by_id("graphics").as_ref(),
     );
 
     // Here we want to call `requestAnimationFrame` in a loop, but only a fixed
@@ -74,10 +86,10 @@ pub fn run() -> Result<(), JsValue> {
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
 
-    let mut i = 0;
+    let mut i = 1;
 
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        if i > MARX - 4 {
+        if i > NUM_ITER {
             text_container().set_text_content(Some("All done!"));
 
             // Drop our handle to this closure so that it will get cleaned
@@ -88,20 +100,25 @@ pub fn run() -> Result<(), JsValue> {
 
         // Set the body's text content to how many times this
         // requestAnimationFrame callback has fired.
-        i += 1;
         let text = format!("requestAnimationFrame has been called {} times.", i);
         text_container().set_text_content(Some(&text));
 
-        img_display
-            .clear(Rgb565::CSS_LAVENDER)
-            .expect("clear should work man");
-        Circle::new(Point::new(MARX - i, MARX - i), i as u32 * 2)
+        img_display.clear(Rgb565::BLACK).expect("could not clear()");
+
+        for j in 0..5 {
+            Circle::new(
+                Point::new(NUM_ITER - i - 2 * j, NUM_ITER - i - 2 * j),
+                (2 * i + 4 * j) as u32,
+            )
             .into_styled(PrimitiveStyle::with_stroke(Rgb565::CSS_PINK, 1))
             .draw(&mut img_display)
-            .expect("draw should work man");
+            .expect("could not draw Circle");
+        }
+        img_display.flush().expect("could not flush buffer");
 
         // Schedule ourself for another requestAnimationFrame callback.
         request_animation_frame(f.borrow().as_ref().unwrap());
+        i += 1;
     }) as Box<dyn FnMut()>));
 
     request_animation_frame(g.borrow().as_ref().unwrap());

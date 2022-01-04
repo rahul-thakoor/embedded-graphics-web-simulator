@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-  <meta charset="UTF-8" />
-  <link href="https://fonts.googleapis.com/css?family=Raleway+Dots&display=swap" rel="stylesheet" />
-  <title>Embedded Graphics Web Simulator!</title>
-  <style>
+fn main() {
+    cargo_run_wasm::run_wasm_with_css(
+        r#"
     body {
       display: flex;
       justify-content: center;
@@ -51,23 +46,6 @@
     a {
       color: gainsboro;
     }
-  </style>
-</head>
-
-<body>
-  <header>
-    Embedded Graphics Web Simulator!
-  </header>
-
-  <div id="custom-container"></div>
-  <footer>
-    🦀 A rust-embedded x rust-wasm experiment 🦀
-    <br />Made using
-    <a href="https://github.com/jamwaffles" target="_blank">@jamwaffles'</a>
-    <a href="https://github.com/embedded-graphics/simulator" target="_blank">Embedded Graphics</a>
-  </footer>
-
-  <script src="index.js"></script>
-</body>
-
-</html>
+    "#,
+    );
+}

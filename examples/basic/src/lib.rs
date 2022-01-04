@@ -16,14 +16,6 @@ use embedded_graphics::{
 
 use tinybmp::Bmp;
 
-// When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
-// allocator.
-//
-// If you don't want to use `wee_alloc`, you can safely delete this.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 // This is like the `main` function, except for JavaScript.
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
@@ -32,7 +24,29 @@ pub fn main_js() -> Result<(), JsValue> {
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
 
-    let document = web_sys::window().unwrap().document().unwrap();
+    let document = web_sys::window()
+        .expect("could not get window")
+        .document()
+        .expect("could not get document");
+    let body = document.body().expect("could not get document body");
+
+    // for simplicity reasons, this example uses `cargo-run-wasm`, which doesn't allow
+    // custom html - so it's augmented here inline. In a real project, you'd likely use `trunk` instead.
+    body.set_inner_html(
+        r#"
+    <header>
+    Embedded Graphics Web Simulator!
+  </header>
+
+  <div id="custom-container"></div>
+  <footer>
+    🦀 A rust-embedded x rust-wasm experiment 🦀
+    <br />Made using
+    <a href="https://github.com/jamwaffles" target="_blank">@jamwaffles'</a>
+    <a href="https://github.com/embedded-graphics/simulator" target="_blank">Embedded Graphics</a>
+  </footer>
+    "#,
+    );
 
     let output_settings = OutputSettingsBuilder::new()
         .scale(1)
@@ -42,7 +56,7 @@ pub fn main_js() -> Result<(), JsValue> {
     let mut img_display = WebSimulatorDisplay::new(
         (128, 128),
         &output_settings,
-        document.get_element_by_id("custom-container"),
+        document.get_element_by_id("custom-container").as_ref(),
     );
 
     let style = MonoTextStyle::new(&FONT_6X9, Rgb565::CSS_WHITE);
@@ -53,6 +67,7 @@ pub fn main_js() -> Result<(), JsValue> {
     {
         console::log_1(&"Couldn't draw text".into());
     }
+    text_display.flush().expect("could not flush buffer");
 
     // Load the BMP image
     let bmp = Bmp::from_slice(include_bytes!("./assets/rust-pride.bmp")).unwrap();
@@ -68,5 +83,8 @@ pub fn main_js() -> Result<(), JsValue> {
     {
         console::log_1(&"Couldn't draw circle".into());
     }
+
+    img_display.flush().expect("could not flush buffer");
+
     Ok(())
 }
