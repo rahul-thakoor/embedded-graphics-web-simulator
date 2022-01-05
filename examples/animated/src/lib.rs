@@ -1,4 +1,4 @@
-use embedded_graphics::draw_target::DrawTarget;
+use embedded_graphics::{draw_target::DrawTarget, prelude::RgbColor};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -92,9 +92,7 @@ pub fn run() -> Result<(), JsValue> {
         let text = format!("requestAnimationFrame has been called {} times.", i);
         text_container().set_text_content(Some(&text));
 
-        img_display
-            .clear(Rgb565::CSS_LAVENDER)
-            .expect("could not clear()");
+        img_display.clear(Rgb565::BLACK).expect("could not clear()");
         Circle::new(Point::new(NUM_ITER - i, NUM_ITER - i), i as u32 * 2)
             .into_styled(PrimitiveStyle::with_stroke(Rgb565::CSS_PINK, 1))
             .draw(&mut img_display)
