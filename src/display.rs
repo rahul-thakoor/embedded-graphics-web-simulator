@@ -4,7 +4,7 @@ use embedded_graphics::{
     geometry::Size,
     pixelcolor::{PixelColor, Rgb888},
     prelude::*,
-    primitives::{self},
+    primitives::Rectangle,
 };
 use std::{convert::TryInto, error::Error};
 use wasm_bindgen::{Clamped, JsCast};
@@ -108,7 +108,7 @@ where
         // source: https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs#L39
         let pitch = scale + self.output_settings.pixel_spacing as usize;
 
-        let bounding_box = primitives::Rectangle::new(Point::new(0, 0), self.canvas_size);
+        let bounding_box = Rectangle::new(Point::new(0, 0), self.size);
         for pixel in pixels.into_iter() {
             let point = pixel.0;
             if bounding_box.contains(point) {
