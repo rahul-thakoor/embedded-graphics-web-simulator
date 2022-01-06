@@ -1,4 +1,4 @@
-use embedded_graphics::{draw_target::DrawTarget, prelude::RgbColor};
+use embedded_graphics::{draw_target::DrawTarget, prelude::*, primitives::Rectangle};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -49,7 +49,7 @@ pub fn run() -> Result<(), JsValue> {
 
     let document = document();
     let output_settings = OutputSettingsBuilder::new()
-        .scale(2)
+        .scale(3)
         .pixel_spacing(2)
         .build();
     let mut img_display = WebSimulatorDisplay::new(
@@ -97,6 +97,7 @@ pub fn run() -> Result<(), JsValue> {
             .into_styled(PrimitiveStyle::with_stroke(Rgb565::CSS_PINK, 1))
             .draw(&mut img_display)
             .expect("could not draw Circle");
+
         // Schedule ourself for another requestAnimationFrame callback.
         request_animation_frame(f.borrow().as_ref().unwrap());
         i += 1;

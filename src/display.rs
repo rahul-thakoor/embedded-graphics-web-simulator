@@ -135,7 +135,7 @@ where
         .expect("could not create ImageData");
         self.context
             .put_image_data(&image_data, 0., 0.)
-            .expect("coult not put ImageData");
+            .expect("could not put ImageData");
 
         Ok(())
     }
