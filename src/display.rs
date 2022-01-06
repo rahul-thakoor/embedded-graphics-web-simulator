@@ -6,8 +6,8 @@ use embedded_graphics::{
     prelude::*,
     primitives::Rectangle,
 };
-use std::{convert::TryInto, error::Error};
-use wasm_bindgen::{Clamped, JsCast};
+use std::error::Error;
+use wasm_bindgen::{Clamped, JsCast, JsValue};
 use web_sys::{CanvasRenderingContext2d, Element, HtmlCanvasElement, ImageData};
 
 /// WebSimulator display.
@@ -79,6 +79,15 @@ where
             _color_type: PhantomData,
         }
     }
+
+    pub fn flush(&mut self) -> Result<(), JsValue> {
+        let backing = self.backing.as_mut_slice();
+        let image_data =
+            ImageData::new_with_u8_clamped_array(Clamped(backing), self.canvas_size.width)
+                .expect("could not create ImageData");
+        self.context.put_image_data(&image_data, 0., 0.)?;
+        Ok(())
+    }
 }
 impl<C> OriginDimensions for WebSimulatorDisplay<C>
 where
@@ -127,15 +136,6 @@ where
                 }
             }
         }
-
-        let image_data = ImageData::new_with_u8_clamped_array(
-            Clamped(backing),
-            self.canvas_size.width.try_into().unwrap(),
-        )
-        .expect("could not create ImageData");
-        self.context
-            .put_image_data(&image_data, 0., 0.)
-            .expect("could not put ImageData");
 
         Ok(())
     }

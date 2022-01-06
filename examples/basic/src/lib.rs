@@ -68,5 +68,8 @@ pub fn main_js() -> Result<(), JsValue> {
     {
         console::log_1(&"Couldn't draw circle".into());
     }
+
+    img_display.flush().expect("could not flush buffer");
+
     Ok(())
 }
