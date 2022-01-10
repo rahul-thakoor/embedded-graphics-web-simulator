@@ -4,17 +4,20 @@ use embedded_graphics::{
     geometry::Size,
     pixelcolor::{PixelColor, Rgb888},
     prelude::*,
-    primitives::{self, Rectangle},
+    primitives::Rectangle,
 };
-use std::{convert::TryInto, error::Error};
-use wasm_bindgen::{JsCast, JsValue};
-use web_sys::{Element, HtmlCanvasElement};
+use std::error::Error;
+use wasm_bindgen::{Clamped, JsCast, JsValue};
+use web_sys::{CanvasRenderingContext2d, Element, HtmlCanvasElement, ImageData};
 
 /// WebSimulator display.
 pub struct WebSimulatorDisplay<C> {
     size: Size,
+    canvas_size: Size,
     canvas: HtmlCanvasElement,
     output_settings: OutputSettings,
+    backing: Vec<u8>,
+    context: CanvasRenderingContext2d,
     _color_type: PhantomData<C>,
 }
 
@@ -32,26 +35,20 @@ where
         parent: Option<&Element>,
     ) -> Self {
         // source: https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs
-        let width = size.0 * output_settings.scale + (size.0 - 1) * output_settings.pixel_spacing;
+        let canvas_width =
+            size.0 * output_settings.scale + (size.0 - 1) * output_settings.pixel_spacing;
         // source: https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs
-        let height = size.1 * output_settings.scale + (size.1 - 1) * output_settings.pixel_spacing;
+        let canvas_height =
+            size.1 * output_settings.scale + (size.1 - 1) * output_settings.pixel_spacing;
+
         let document = web_sys::window().unwrap().document().unwrap();
         let canvas = document.create_element("canvas").unwrap();
         let canvas: web_sys::HtmlCanvasElement = canvas
             .dyn_into::<web_sys::HtmlCanvasElement>()
             .map_err(|_| ())
             .unwrap();
-        canvas.set_width(width);
-        canvas.set_height(height);
-        let context = canvas
-            .get_context("2d")
-            .unwrap()
-            .unwrap()
-            .dyn_into::<web_sys::CanvasRenderingContext2d>()
-            .unwrap();
-
-        context.set_fill_style(&JsValue::from_str("black"));
-        context.fill_rect(0.0, 0.0, width as f64, height as f64);
+        canvas.set_width(canvas_width);
+        canvas.set_height(canvas_height);
         parent
             .unwrap_or(
                 &document
@@ -63,75 +60,35 @@ where
             )
             .append_child(&canvas)
             .expect("couldn't append canvas to parent");
-
-        WebSimulatorDisplay {
-            size: Size::new(width, height),
-            canvas,
-            output_settings: output_settings.clone(),
-            _color_type: PhantomData,
-        }
-    }
-
-    fn fill_rect(
-        canvas: &HtmlCanvasElement,
-        color: C,
-        area: &Rectangle,
-        scale: u32,
-        pitch: u32,
-    ) -> Result<(), Box<dyn Error>> {
         let context = canvas
             .get_context("2d")
             .unwrap()
             .unwrap()
             .dyn_into::<web_sys::CanvasRenderingContext2d>()
             .unwrap();
-        let color_rgb888 = color.into();
-
-        let css_color = format!(
-            "rgb({},{},{})",
-            color_rgb888.r(),
-            color_rgb888.g(),
-            color_rgb888.b()
-        );
-        context.set_fill_style(&JsValue::from_str(&css_color));
-
-        let width = area.size.width * scale;
-        let height = area.size.height * scale;
-
-        let scale: i32 = scale.try_into()?;
-        let pitch: i32 = pitch.try_into()?;
-
-        let origin = area.top_left;
-
-        context.fill_rect(
-            (origin.x * scale * pitch).try_into()?,
-            (origin.y * scale * pitch).try_into()?,
-            width.try_into()?,
-            height.try_into()?,
-        );
-        Ok(())
-    }
-
-    fn draw_pixel(&mut self, pixel: Pixel<C>) -> Result<(), core::convert::Infallible> {
-        let Pixel(coord, color) = pixel;
-        let scale = self.output_settings.scale;
 
         // source: https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs#L39
-        let pitch = scale + self.output_settings.pixel_spacing;
 
-        Self::fill_rect(
-            &self.canvas,
-            color,
-            &Rectangle::new(coord, Size::new(scale, scale)),
-            scale,
-            pitch,
-        )
-        .expect("numeric conversion failed");
+        WebSimulatorDisplay {
+            size: Size::new(size.0, size.1),
+            canvas_size: Size::new(canvas_width, canvas_height),
+            backing: vec![0; (4 * canvas_width * canvas_height) as usize],
+            canvas,
+            context,
+            output_settings: output_settings.clone(),
+            _color_type: PhantomData,
+        }
+    }
 
+    pub fn flush(&mut self) -> Result<(), JsValue> {
+        let backing = self.backing.as_mut_slice();
+        let image_data =
+            ImageData::new_with_u8_clamped_array(Clamped(backing), self.canvas_size.width)
+                .expect("could not create ImageData");
+        self.context.put_image_data(&image_data, 0., 0.)?;
         Ok(())
     }
 }
-
 impl<C> OriginDimensions for WebSimulatorDisplay<C>
 where
     C: PixelColor + Into<Rgb888>,
@@ -152,17 +109,33 @@ where
     where
         I: IntoIterator<Item = Pixel<Self::Color>>,
     {
-        let bounding_box = primitives::Rectangle::new(Point::new(0, 0), self.size);
+        let canvas_width = self.canvas_size.width as usize;
+        let backing = self.backing.as_mut_slice();
+
+        let scale = self.output_settings.scale as usize;
+
+        // source: https://github.com/embedded-graphics/simulator/blob/master/src/output_settings.rs#L39
+        let pitch = scale + self.output_settings.pixel_spacing as usize;
+
+        let bounding_box = Rectangle::new(Point::new(0, 0), self.size);
         for pixel in pixels.into_iter() {
-            if bounding_box.contains(pixel.0) {
-                self.draw_pixel(pixel)?;
+            let point = pixel.0;
+            if bounding_box.contains(point) {
+                let rgb: Rgb888 = pixel.1.into();
+                let rgb_slice = &[rgb.r(), rgb.g(), rgb.b(), 255];
+                let py = point.y as usize;
+                let px = point.x as usize;
+
+                let x_offset = px * 4 * pitch;
+                for y in 0..scale {
+                    let y_offset = py * 4 * canvas_width * pitch + y * 4 * canvas_width;
+                    for x in 0..scale {
+                        let pixel_offset = y_offset + x_offset + x * 4;
+                        backing[pixel_offset..pixel_offset + 4].copy_from_slice(rgb_slice);
+                    }
+                }
             }
         }
-        Ok(())
-    }
-
-    fn fill_solid(&mut self, area: &Rectangle, color: Self::Color) -> Result<(), Self::Error> {
-        Self::fill_rect(&self.canvas, color, area, self.output_settings.scale, 1)?;
 
         Ok(())
     }

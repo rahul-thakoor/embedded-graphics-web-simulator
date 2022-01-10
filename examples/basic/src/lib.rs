@@ -42,7 +42,7 @@ pub fn main_js() -> Result<(), JsValue> {
     let mut img_display = WebSimulatorDisplay::new(
         (128, 128),
         &output_settings,
-        document.get_element_by_id("custom-container"),
+        document.get_element_by_id("custom-container").as_ref(),
     );
 
     let style = MonoTextStyle::new(&FONT_6X9, Rgb565::CSS_WHITE);
@@ -53,6 +53,7 @@ pub fn main_js() -> Result<(), JsValue> {
     {
         console::log_1(&"Couldn't draw text".into());
     }
+    text_display.flush().expect("could not flush buffer");
 
     // Load the BMP image
     let bmp = Bmp::from_slice(include_bytes!("./assets/rust-pride.bmp")).unwrap();
@@ -68,5 +69,8 @@ pub fn main_js() -> Result<(), JsValue> {
     {
         console::log_1(&"Couldn't draw circle".into());
     }
+
+    img_display.flush().expect("could not flush buffer");
+
     Ok(())
 }
