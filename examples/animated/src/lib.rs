@@ -1,4 +1,4 @@
-use embedded_graphics::{draw_target::DrawTarget, prelude::*, primitives::Rectangle};
+use embedded_graphics::{draw_target::DrawTarget, prelude::*};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -48,6 +48,17 @@ pub fn run() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
     let document = document();
+
+    let body = document.body().expect("could not get document body");
+
+    // for simplicity reasons, this example uses `cargo-run-wasm`, which doesn't allow
+    // custom html - so it's augmented here inline. In a real project, you'd likely use `trunk` instead.
+    body.set_inner_html(
+        r#"
+        <p id="text">A greeting from rust looks like...
+        <div id="graphics"></div>
+        "#,
+    );
     let output_settings = OutputSettingsBuilder::new()
         .scale(3)
         .pixel_spacing(1)
@@ -75,7 +86,7 @@ pub fn run() -> Result<(), JsValue> {
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
 
-    let mut i = 0;
+    let mut i = 1;
 
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
         if i > NUM_ITER {
@@ -89,7 +100,6 @@ pub fn run() -> Result<(), JsValue> {
 
         // Set the body's text content to how many times this
         // requestAnimationFrame callback has fired.
-        i += 1;
         let text = format!("requestAnimationFrame has been called {} times.", i);
         text_container().set_text_content(Some(&text));
 

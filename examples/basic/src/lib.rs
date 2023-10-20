@@ -16,14 +16,6 @@ use embedded_graphics::{
 
 use tinybmp::Bmp;
 
-// When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
-// allocator.
-//
-// If you don't want to use `wee_alloc`, you can safely delete this.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 // This is like the `main` function, except for JavaScript.
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
@@ -32,7 +24,29 @@ pub fn main_js() -> Result<(), JsValue> {
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
 
-    let document = web_sys::window().unwrap().document().unwrap();
+    let document = web_sys::window()
+        .expect("could not get window")
+        .document()
+        .expect("could not get document");
+    let body = document.body().expect("could not get document body");
+
+    // for simplicity reasons, this example uses `cargo-run-wasm`, which doesn't allow
+    // custom html - so it's augmented here inline. In a real project, you'd likely use `trunk` instead.
+    body.set_inner_html(
+        r#"
+    <header>
+    Embedded Graphics Web Simulator!
+  </header>
+
+  <div id="custom-container"></div>
+  <footer>
+    🦀 A rust-embedded x rust-wasm experiment 🦀
+    <br />Made using
+    <a href="https://github.com/jamwaffles" target="_blank">@jamwaffles'</a>
+    <a href="https://github.com/embedded-graphics/simulator" target="_blank">Embedded Graphics</a>
+  </footer>
+    "#,
+    );
 
     let output_settings = OutputSettingsBuilder::new()
         .scale(1)

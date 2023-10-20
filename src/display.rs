@@ -1,20 +1,21 @@
-use crate::output_settings::OutputSettings;
 use core::marker::PhantomData;
+use std::error::Error;
+
 use embedded_graphics::{
     geometry::Size,
     pixelcolor::{PixelColor, Rgb888},
     prelude::*,
     primitives::Rectangle,
 };
-use std::error::Error;
 use wasm_bindgen::{Clamped, JsCast, JsValue};
-use web_sys::{CanvasRenderingContext2d, Element, HtmlCanvasElement, ImageData};
+use web_sys::{CanvasRenderingContext2d, Element, ImageData};
+
+use crate::output_settings::OutputSettings;
 
 /// WebSimulator display.
 pub struct WebSimulatorDisplay<C> {
     size: Size,
     canvas_size: Size,
-    canvas: HtmlCanvasElement,
     output_settings: OutputSettings,
     backing: Vec<u8>,
     context: CanvasRenderingContext2d,
@@ -73,7 +74,6 @@ where
             size: Size::new(size.0, size.1),
             canvas_size: Size::new(canvas_width, canvas_height),
             backing: vec![0; (4 * canvas_width * canvas_height) as usize],
-            canvas,
             context,
             output_settings: output_settings.clone(),
             _color_type: PhantomData,

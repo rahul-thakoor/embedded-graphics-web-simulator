@@ -1,18 +1,19 @@
 [package]
-name = "request-animation-frame"
+name = "animated"
 version = "0.1.0"
-authors = ["The wasm-bindgen Developers"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
 
+[workspace]
+# work around https://github.com/rust-lang/cargo/issues/10752
+members = ["run-wasm-cargo-bug"]
+
 [dependencies]
 wasm-bindgen = "0.2.77"
-embedded-graphics-web-simulator = {path = "../.."}
-embedded-graphics = "0.7.1"
-
-[target."cfg(debug_assertions)".dependencies]
+embedded-graphics-web-simulator = { path = "../.." }
+embedded-graphics = "0.8"
 console_error_panic_hook = "0.1.5"
 
 [dependencies.web-sys]
@@ -27,4 +28,3 @@ features = [
   'Node',
   'Window',
 ]
-
