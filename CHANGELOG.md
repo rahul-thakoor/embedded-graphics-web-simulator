@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file
 
+# v.0.4.0
+## (11-11-2023)
+* Update to embedded-graphics 0.8 and remove nodejs dependency [ @spookyvision ]
+
 # v.0.3.0
 ## (10-01-2021)
 

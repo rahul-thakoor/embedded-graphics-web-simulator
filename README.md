@@ -5,9 +5,10 @@ This is a sample project demonstrating using a `no_std` rust-embedded library wi
 
 The Web Simulator allows you to use a browser to test embedded-graphics code and run graphics. There is no need to install SDL and its development libraries for _running_ the project. You can see [the demo here](https://rahul-thakoor.github.io/embedded-graphics-web-simulator/).
 
+![basic demo](./assets/embedded-graphics-web-simulator.jpg)
 ## For Development
 
-This library is intended to be used in Rust + Webassembly projects. Check the examples which illustrate how to use the library. Look at the [examples](https://github.com/embedded-graphics/simulator/tree/master/examples) in the Embedded Graphics Simulator project for inspiration. You can use [wasm-pack](https://rustwasm.github.io/wasm-pack/) to create a ready to go project and add this library as a dependency.
+This library is intended to be used in Rust + Webassembly projects. Check the examples which illustrate how to use the library. Look at the [examples](https://github.com/embedded-graphics/simulator/tree/master/examples) in the Embedded Graphics Simulator project for inspiration. You can use [wasm-pack](https://rustwasm.github.io/wasm-pack/) or [trunk](https://trunkrs.dev/)and add this library as a dependency 
 
 Usage example:
 
@@ -99,6 +100,10 @@ To minimize overhead, draw operations need to be explicitly `flush()`ed whenver 
 
 This project is based on the [embedded-graphics](https://github.com/embedded-graphics/simulator) library, originally by @jamwaffles
 
-Built with [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+
+### Tools
+-  [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+- [cargo-run-wasm](https://crates.io/crates/cargo-run-wasm)
+
 
 Thanks to all contributors :)
